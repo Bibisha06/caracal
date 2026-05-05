@@ -79,12 +79,44 @@ export async function providerCommand(argv: string[], cfg?: CliConfig): Promise<
         process.stdout.write(`deleted ${id}\n`)
         return
       }
+      case 'help':
+      case '--help':
+      case '-h':
       default:
-        return usage('provider <list|get|create|patch|delete> [...]')
+        return help()
     }
   } catch (err) {
     fail(err)
   }
+}
+
+function help(): void {
+  process.stdout.write(
+    [
+      'Usage: caracal provider <verb> [options]',
+      '',
+      'Verbs:',
+      '  list                      List identity providers in a zone',
+      '  get <id>                  Fetch a provider by ID as JSON',
+      '  create                    Register an identity provider',
+      '    --identifier <id>         Provider identifier (required)',
+      '    --name <n>                Display name',
+      '    --kind <k>                oauth2 | oidc | apikey | workload',
+      '    --owner-type <t>          Owner type (e.g. user, agent)',
+      '    --client-id <id>          OAuth 2.0 client ID',
+      '    --config @file.json       Provider config JSON (use @path or inline JSON)',
+      '  patch <id>                Update a provider',
+      '    --identifier, --name, --kind, --owner-type, --client-id, --config',
+      '  delete <id>               Permanently delete a provider',
+      '',
+      'Flags:',
+      '  --zone <id>               Zone selector (or CARACAL_ZONE_ID)',
+      '  --json                    Emit raw JSON',
+      '  --help, -h                Show this help',
+      '',
+    ].join('\n'),
+  )
+  process.exit(0)
 }
 
 function usage(line: string): void {

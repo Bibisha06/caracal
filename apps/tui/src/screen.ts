@@ -19,6 +19,7 @@ export interface View {
   onKey(key: Key, ctx: ViewContext): void | Promise<void>
   init?(app: App): void | Promise<void>
   dispose?(): void
+  readonly isTextEntry?: boolean
 }
 
 export class App {
@@ -126,7 +127,8 @@ export class App {
   }
 
   private async dispatchKey(key: Key): Promise<void> {
-    if (key === 'ctrl-c' || key === 'q') return this.exit()
+    if (key === 'ctrl-c') return this.exit()
+    if (key === 'q' && !this.current().isTextEntry) return this.exit()
     await this.current().onKey(key, { app: this, size: size(), status: this.status })
   }
 
