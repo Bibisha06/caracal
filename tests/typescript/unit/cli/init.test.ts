@@ -4,7 +4,7 @@
 // CLI init command unit tests for bootstrap config writing.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { initCommand } from '../../../../apps/cli/src/commands/init.js'
@@ -66,6 +66,32 @@ describe('initCommand', () => {
     expect(body).toContain('app_client_secret = "secret-1"')
     expect(body).toContain('resource = "resource://example"')
     expect((statSync(configPath).mode & 0o777).toString(8)).toBe('600')
+    expect(stdout).toContain(`Wrote ${configPath}`)
+  })
+
+  it('updates an existing cwd config when no config flag is provided', async () => {
+    const configPath = join(dir, 'caracal.toml')
+    writeFileSync(configPath, 'zone_url = "http://stale"\napp_client_id = "zone1:app1"\napp_client_secret = "stale"\n')
+    vi.spyOn(process, 'cwd').mockReturnValue(dir)
+    vi.stubEnv('PWD', dir)
+    vi.stubEnv('INIT_CWD', dir)
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        zone_id: 'zone1',
+        app_id: 'app1',
+        app_client_id: 'zone1:app1',
+        app_client_secret: 'secret-2',
+        resource: 'resource://example',
+        scope: 'read',
+        rotated: true,
+      }),
+    }))
+
+    await initCommand(['--admin-token', 'admin-secret'])
+
+    const body = readFileSync(configPath, 'utf8')
+    expect(body).toContain('app_client_secret = "secret-2"')
     expect(stdout).toContain(`Wrote ${configPath}`)
   })
 
