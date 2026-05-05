@@ -6,7 +6,7 @@
 ## Required
 - Must run on Node 24+ via `bin/caracal.mjs`; release artifacts are produced via `bun build --compile` for linux/darwin/windows × x64/arm64.
 - Must support `caracal up [services...]`, `caracal down [flags...]`, `caracal status`, `caracal init` (provisions the local zone via `POST /v1/local/bootstrap` and writes `caracal.toml`), `caracal run <cmd...>` (ambient 60-min token injection), and `caracal credential read <resource>` (one-shot 15-min token).
-- Must select stack mode in this order: (1) explicit `$CARACAL_HOME` → runtime mode; (2) walk up from cwd for `infra/docker/docker-compose.yml` → dev mode; (3) fall back to runtime mode at the default home.
+- Must select stack mode in this order: (1) explicit `$CARACAL_STACK_MODE=runtime` → runtime mode; (2) walk up from `$CARACAL_REPO_ROOT`, `$INIT_CWD`, `$PWD`, cwd, and the CLI module path for `infra/docker/docker-compose.yml` → dev mode; (3) fall back to runtime mode at the default home.
 - Must, in runtime mode, auto-provision `compose.yml`, `provision-streams.sh` (mode 0755), and `.env` (mode 0600) into `$CARACAL_HOME` (default: macOS `~/Library/Application Support/caracal`, otherwise `$XDG_DATA_HOME/caracal` or `~/.local/share/caracal`) using assets bundled at build time, seeding `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, and `CARACAL_ADMIN_TOKEN` with cryptographically random values.
 - Must, in runtime mode, pin container image tags to the CLI's `CARACAL_VERSION` constant (overridable by `CARACAL_VERSION` env) and pull from `ghcr.io/garudex-labs/caracal-{api,sts,gateway,audit,coordinator}`.
 - Must regenerate `src/runtime/embedded.ts` via `scripts/build-embedded.mjs` before every binary build; the file is generated and gitignored.

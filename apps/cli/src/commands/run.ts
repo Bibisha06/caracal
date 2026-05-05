@@ -79,7 +79,8 @@ async function exchangeWithStepUp(
 }
 
 export async function runCommand(argv: string[], cfg: CliConfig): Promise<void> {
-  if (argv.length === 0) {
+  const commandArgs = argv[0] === '--' ? argv.slice(1) : argv
+  if (commandArgs.length === 0) {
     process.stderr.write('Usage: caracal run <cmd...>\n')
     process.exit(1)
   }
@@ -129,7 +130,7 @@ export async function runCommand(argv: string[], cfg: CliConfig): Promise<void> 
     }
   }
 
-  const [cmd, ...args] = argv
+  const [cmd, ...args] = commandArgs
   const proc = spawn(cmd!, args, { env, stdio: 'inherit' })
 
   const code: number = await new Promise((resolve) => {

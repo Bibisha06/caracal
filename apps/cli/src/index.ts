@@ -67,9 +67,10 @@ if (command === 'init') {
   await statusCommand()
 } else if (command === 'run') {
   const cfg = loadConfig()
-  const [cmd] = rest
+  const runArgs = rest[0] === '--' ? rest.slice(1) : rest
+  const [cmd] = runArgs
   if (cmd) checkMcpGovernance(cmd, cfg)
-  await runCommand(rest, cfg)
+  await runCommand(runArgs, cfg)
 } else if (command === 'credential' && rest[0] === 'read') {
   const cfg = loadConfig()
   await credentialReadCommand(rest[1] ?? '', cfg)
