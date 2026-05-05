@@ -74,14 +74,45 @@ export async function resourceCommand(argv: string[], cfg?: CliConfig): Promise<
         process.stdout.write(`deleted ${id}\n`)
         return
       }
+      case 'help':
+      case '--help':
+      case '-h':
       default:
-        return usage('resource <list|get|create|patch|delete> [...]')
+        return help()
     }
   } catch (err) {
     fail(err)
   }
 }
 
+function help(): void {
+  process.stdout.write(
+    [
+      'Usage: caracal resource <verb> [options]',
+      '',
+      'Verbs:',
+      '  list                      List resources in a zone',
+      '  get <id>                  Fetch a resource by ID as JSON',
+      '  create                    Register a protected resource',
+      '    --identifier <id>         Resource identifier URI (required)',
+      '    --scopes a,b              Comma-separated list of scopes (required)',
+      '    --name <n>                Human-readable name',
+      '    --upstream-url <url>      Backend URL the gateway proxies to',
+      '    --prefix                  Match identifier as a prefix',
+      '    --provider <id>           Credential provider ID',
+      '  patch <id>                Update a resource',
+      '    --identifier, --name, --upstream-url, --scopes, --prefix=true|false, --provider',
+      '  delete <id>               Permanently delete a resource',
+      '',
+      'Flags:',
+      '  --zone <id>               Zone selector (or CARACAL_ZONE_ID)',
+      '  --json                    Emit raw JSON',
+      '  --help, -h                Show this help',
+      '',
+    ].join('\n'),
+  )
+  process.exit(0)
+}
 function usage(line: string): void {
   process.stderr.write(`Usage: caracal ${line}\n`)
   process.exit(1)

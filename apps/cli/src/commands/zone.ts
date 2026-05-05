@@ -63,12 +63,44 @@ export async function zoneCommand(argv: string[], cfg?: CliConfig): Promise<void
         process.stdout.write(`deleted ${id}\n`)
         return
       }
+      case 'help':
+      case '--help':
+      case '-h':
       default:
-        return usage('zone <list|get|create|patch|delete> [...]')
+        return help()
     }
   } catch (err) {
     fail(err)
   }
+}
+
+function help(): void {
+  process.stdout.write(
+    [
+      'Usage: caracal zone <verb> [options]',
+      '',
+      'Verbs:',
+      '  list                    List all zones',
+      '  get <id>                Fetch a zone by ID as JSON',
+      '  create                  Create a new zone',
+      '    --name <n>              Zone display name (required)',
+      '    --slug <s>              URL-safe slug (auto-derived from name if omitted)',
+      '    --org <id>              Organization ID',
+      '    --dcr                   Enable dynamic client registration',
+      '    --no-pkce               Disable PKCE (PKCE is required by default)',
+      '    --login-flow <flow>     Login flow type (default: standard)',
+      '  patch <id>              Update fields on a zone (only supplied flags change)',
+      '    --name, --slug, --org, --login-flow',
+      '    --dcr=true|false, --pkce=true|false',
+      '  delete <id>             Permanently delete a zone and all its resources',
+      '',
+      'Flags:',
+      '  --json                  Emit raw JSON instead of a table',
+      '  --help, -h              Show this help',
+      '',
+    ].join('\n'),
+  )
+  process.exit(0)
 }
 
 function usage(line: string): void {

@@ -35,15 +35,33 @@ export async function sessionCommand(argv: string[], cfg?: CliConfig): Promise<v
         if (json) return printJSON(rows)
         return printTable(rows, ['id', 'session_type', 'subject_id', 'status', 'expires_at', 'authenticated_at'])
       }
+      case 'help':
+      case '--help':
+      case '-h':
       default:
-        return usage('session list [--zone …] [--status active|revoked|expired] [--subject …] [--limit N]')
+        return help()
     }
   } catch (err) {
     fail(err)
   }
 }
 
-function usage(line: string): void {
-  process.stderr.write(`Usage: caracal ${line}\n`)
-  process.exit(1)
+function help(): void {
+  process.stdout.write(
+    [
+      'Usage: caracal session list [options]',
+      '',
+      'Lists sessions within a zone (read-only; revocation is done via `caracal grant revoke`).',
+      '',
+      'Flags:',
+      '  --zone <id>               Zone selector (or CARACAL_ZONE_ID)',
+      '  --status active|revoked|expired  Filter by session status',
+      '  --subject <id>            Filter by subject (user) ID',
+      '  --limit N                 Maximum number of rows to return',
+      '  --json                    Emit raw JSON',
+      '  --help, -h                Show this help',
+      '',
+    ].join('\n'),
+  )
+  process.exit(0)
 }
