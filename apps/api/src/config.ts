@@ -41,6 +41,13 @@ export interface Config {
   localBootstrapEnabled: boolean
   shutdownTimeoutMs: number
   workerId: string
+  db: {
+    poolMax: number
+    statementTimeoutMs: number
+    idleInTxTimeoutMs: number
+    connectionTimeoutMs: number
+    idleTimeoutMs: number
+  }
   outbox: {
     pollIntervalMs: number
     batchSize: number
@@ -97,6 +104,13 @@ export function loadConfig(): Config {
     localBootstrapEnabled: parseBool(process.env.CARACAL_LOCAL_BOOTSTRAP_ENABLED, false),
     shutdownTimeoutMs: parseIntEnv('CARACAL_SHUTDOWN_TIMEOUT_MS', 15_000),
     workerId: deriveWorkerId(),
+    db: {
+      poolMax: parseIntEnv('CARACAL_DB_POOL_MAX', 20),
+      statementTimeoutMs: parseIntEnv('CARACAL_DB_STATEMENT_TIMEOUT_MS', 15_000),
+      idleInTxTimeoutMs: parseIntEnv('CARACAL_DB_IDLE_IN_TX_TIMEOUT_MS', 30_000),
+      connectionTimeoutMs: parseIntEnv('CARACAL_DB_CONNECTION_TIMEOUT_MS', 5_000),
+      idleTimeoutMs: parseIntEnv('CARACAL_DB_IDLE_TIMEOUT_MS', 30_000),
+    },
     outbox: {
       pollIntervalMs: parseIntEnv('CARACAL_OUTBOX_POLL_MS', 250),
       batchSize: parseIntEnv('CARACAL_OUTBOX_BATCH', 32),

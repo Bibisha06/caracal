@@ -7,6 +7,29 @@ import pg from 'pg'
 
 export type DB = pg.Pool
 
-export function newDB(connectionString: string): DB {
-  return new pg.Pool({ connectionString, max: 20 })
+export interface DBOptions {
+  connectionString: string
+  max?: number
+  statementTimeoutMs?: number
+  idleInTxTimeoutMs?: number
+  connectionTimeoutMs?: number
+  idleTimeoutMs?: number
+  applicationName?: string
+}
+
+export function newDB(options: DBOptions): DB {
+  const pool = new pg.Pool({
+    connectionString: options.connectionString,
+    max: options.max ?? 20,
+    connectionTimeoutMillis: options.connectionTimeoutMs ?? 5_000,
+    idleTimeoutMillis: options.idleTimeoutMs ?? 30_000,
+    application_name: options.applicationName ?? 'caracal-api',
+  })
+  const stmt = options.statementTimeoutMs ?? 15_000
+  const idleTx = options.idleInTxTimeoutMs ?? 30_000
+  pool.on('connect', (client) => {
+    client.query(`SET statement_timeout = ${stmt}`).catch(() => {})
+    client.query(`SET idle_in_transaction_session_timeout = ${idleTx}`).catch(() => {})
+  })
+  return pool
 }

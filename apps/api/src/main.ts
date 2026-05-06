@@ -14,7 +14,15 @@ import { OutboxDispatcher } from './outbox.js'
 import { seedBootstrapAdminToken } from './auth.js'
 
 const cfg = loadConfig()
-const db = newDB(cfg.databaseUrl)
+const db = newDB({
+  connectionString: cfg.databaseUrl,
+  max: cfg.db.poolMax,
+  statementTimeoutMs: cfg.db.statementTimeoutMs,
+  idleInTxTimeoutMs: cfg.db.idleInTxTimeoutMs,
+  connectionTimeoutMs: cfg.db.connectionTimeoutMs,
+  idleTimeoutMs: cfg.db.idleTimeoutMs,
+  applicationName: cfg.workerId,
+})
 const redis = newRedis(cfg.redisUrl)
 
 const log = (level: 'info' | 'warn' | 'error', msg: string, meta?: Record<string, unknown>): void => {
