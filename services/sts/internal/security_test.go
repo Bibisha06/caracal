@@ -105,7 +105,7 @@ func TestHashResourceSetIsCanonical(t *testing.T) {
 // stubChallengeDB captures ConsumeStepUpChallenge calls.
 type stubChallengeDB struct {
 	stubDB
-	gotParams ConsumeStepUpParams
+	gotParams  ConsumeStepUpParams
 	consumeErr error
 }
 

@@ -12,22 +12,22 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 )
 
-func TestHandleRevocationMissingSessionID(t *testing.T) {
+func TestHandleRevocationMissingZoneID(t *testing.T) {
 	s := &Server{db: &stubDB{}}
 	err := s.handleRevocation(context.Background(), streamMessage{
 		ID:     "1-0",
-		Values: map[string]interface{}{},
+		Values: map[string]interface{}{"session_id": "sid"},
 	})
 	if err == nil {
-		t.Error("want error when session_id is missing")
+		t.Error("want error when zone_id is missing")
 	}
 }
 
-func TestHandleRevocationEmptyString(t *testing.T) {
+func TestHandleRevocationMissingSessionID(t *testing.T) {
 	s := &Server{db: &stubDB{}}
 	err := s.handleRevocation(context.Background(), streamMessage{
 		ID:     "2-0",
-		Values: map[string]interface{}{"session_id": ""},
+		Values: map[string]interface{}{"zone_id": "z1", "session_id": ""},
 	})
 	if err == nil {
 		t.Error("want error when session_id is empty string")
@@ -39,7 +39,7 @@ func TestHandleRevocationCallsRevokeSession(t *testing.T) {
 	s := &Server{db: db}
 	err := s.handleRevocation(context.Background(), streamMessage{
 		ID:     "3-0",
-		Values: map[string]interface{}{"session_id": "sid-abc"},
+		Values: map[string]interface{}{"zone_id": "z1", "session_id": "sid-abc"},
 	})
 	if err != nil {
 		t.Errorf("want nil, got %v", err)
@@ -110,9 +110,12 @@ result := {"decision": "allow", "evaluation_status": "complete", "determining_po
 func TestOPAEngineReloadInstallesFallbackWhenNoDB(t *testing.T) {
 	e := newOPAEngine(&stubDB{})
 
+	// stubDB returns a transient (non-ErrNoRows) error. With no cached bundle,
+	// loadZone installs deny-all fallback and surfaces the underlying error so
+	// the operator can see the transient failure.
 	err := e.Reload(context.Background(), "zone-no-policy")
-	if err != nil {
-		t.Errorf("Reload must not return error when fallback is installed: %v", err)
+	if err == nil {
+		t.Error("Reload must surface transient DB error so it is logged")
 	}
 
 	e.mu.RLock()
