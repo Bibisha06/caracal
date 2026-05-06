@@ -3,20 +3,12 @@
 //
 // API input validation security tests: injection vectors, oversized inputs, and type confusion.
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { buildApp } from '../../../../apps/api/src/app.js'
+import { apiAppDeps } from '../../../shared/test-utils/typescript/api-app.js'
 
-function deps(overrides: Partial<{ adminToken: string }> = {}) {
-  const db = { query: vi.fn().mockResolvedValue({ rows: [] }) }
-  const redis = { xadd: vi.fn() }
-  const cfg = {
-    port: 0,
-    databaseUrl: 'postgres://localhost/caracal',
-    redisUrl: 'redis://localhost:6379',
-    logLevel: 'silent',
-    adminToken: overrides.adminToken ?? 'admin-secret',
-  }
-  return { cfg, db, redis }
+function deps(overrides: { adminToken?: string } = {}) {
+  return apiAppDeps({ adminToken: overrides.adminToken })
 }
 
 describe('SQL injection via URL parameter', () => {
@@ -28,12 +20,10 @@ describe('SQL injection via URL parameter', () => {
       url: "/v1/zones/'; DROP TABLE zones; --",
       headers: { authorization: 'Bearer admin-secret' },
     })
-    // The DB is mocked so no actual SQL executes, but the param must reach it unmodified
-    if (db.query.mock.calls.length > 0) {
-      const callArg = db.query.mock.calls[0][1]
-      if (Array.isArray(callArg)) {
-        expect(typeof callArg[0]).toBe('string')
-      }
+    // The DB is mocked so no actual SQL executes, but the param must reach the zones query unmodified
+    const zonesCall = db.query.mock.calls.find((c: unknown[]) => String(c[0]).includes('FROM zones'))
+    if (zonesCall && Array.isArray(zonesCall[1])) {
+      expect(typeof zonesCall[1][0]).toBe('string')
     }
     await app.close()
   })
