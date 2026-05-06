@@ -69,9 +69,6 @@ func (s *Server) createChallenge(ctx context.Context, zoneID, sessionID, princip
 		return nil, err
 	}
 
-	if s.redis != nil {
-		_ = s.redis.SetTTL(ctx, "stepup:"+c.ID, c.ExpiresAt.Format(time.RFC3339), challengeTTL)
-	}
 	return c, nil
 }
 

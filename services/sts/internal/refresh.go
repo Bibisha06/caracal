@@ -152,11 +152,15 @@ func validateTokenEndpoint(raw string, allowedHosts []string) (*url.URL, error) 
 		return nil, errors.New("provider token endpoint host is not allowlisted")
 	}
 	addrs, err := net.LookupIP(u.Hostname())
-	if err == nil {
-		for _, ip := range addrs {
-			if isUnsafeIP(ip) {
-				return nil, errors.New("provider token endpoint resolves to a non-routable address")
-			}
+	if err != nil {
+		return nil, fmt.Errorf("provider token endpoint dns lookup failed: %w", err)
+	}
+	if len(addrs) == 0 {
+		return nil, errors.New("provider token endpoint resolves to no addresses")
+	}
+	for _, ip := range addrs {
+		if isUnsafeIP(ip) {
+			return nil, errors.New("provider token endpoint resolves to a non-routable address")
 		}
 	}
 	return u, nil
